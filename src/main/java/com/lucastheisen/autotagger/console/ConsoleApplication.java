@@ -4,7 +4,6 @@ package com.lucastheisen.autotagger.console;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
