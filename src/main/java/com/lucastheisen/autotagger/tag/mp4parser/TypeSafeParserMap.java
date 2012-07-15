@@ -9,7 +9,7 @@ import com.coremedia.iso.boxes.Box;
 class TypeSafeParserMap {
     private Map<Class<?>, Parser<?>> unsafeMap;
     
-    public <T extends Box,S extends Parser<T>> void add( Class<T> clazz, S parser ) {
+    public <T extends Box> void add( Class<T> clazz, Parser<T> parser ) {
         unsafeMap.put( clazz, parser );
     }
     
@@ -24,8 +24,8 @@ class TypeSafeParserMap {
     }
     
     @SuppressWarnings( "unchecked" )
-    public <T extends Box,S extends Parser<T>> S get( Class<T> clazz ) {
-        return (S) unsafeMap.get( clazz );
+    public <T extends Box> Parser<T> get( Class<T> clazz ) {
+        return (Parser<T>) unsafeMap.get( clazz );
     }
     
     public class ParserMapEntry<T extends Box> {
