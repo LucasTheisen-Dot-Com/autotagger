@@ -4,16 +4,19 @@ package com.lucastheisen.autotagger.console;
 import java.io.File;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.net.MalformedURLException;
 import java.util.Arrays;
 import java.util.List;
 
 
+import com.lucastheisen.autotagger.tag.Image;
 import com.lucastheisen.autotagger.tag.JaudiotaggerReader;
 import com.lucastheisen.autotagger.tag.JaudiotaggerWriter;
 import com.lucastheisen.autotagger.tag.Reader;
 import com.lucastheisen.autotagger.tag.Repository;
 import com.lucastheisen.autotagger.tag.TagChimpRepository;
 import com.lucastheisen.autotagger.tag.TagInfo;
+import com.lucastheisen.autotagger.tag.TagInfo.Rating;
 import com.lucastheisen.autotagger.tag.Writer;
 
 
@@ -38,9 +41,9 @@ public class ConsoleApplication {
         selectedTagInfo.setTitle( getTagInfoAttributeEdit( "Title", selectedTagInfo.getTitle() ) );
         selectedTagInfo.setReleaseDate( getTagInfoAttributeEdit( "Release Date", selectedTagInfo.getReleaseDate() ) );
         selectedTagInfo.setGenre( getTagInfoAttributeEdit( "Genre", selectedTagInfo.getGenre() ) );
-        selectedTagInfo.setRating( getTagInfoAttributeEdit( "Rating", selectedTagInfo.getRating() ) );
+        selectedTagInfo.setRating( getTagInfoRatingEdit( "Rating", selectedTagInfo.getRating() ) );
         selectedTagInfo.setTotalChapters( getTagInfoAttributeEdit( "Total Chapters", selectedTagInfo.getTotalChapters() ) );
-        selectedTagInfo.setImageUrl( getTagInfoAttributeEdit( "Image URL", selectedTagInfo.getImageUrl() ) );
+        selectedTagInfo.setImage( getTagInfoImageEdit( "Image URL", selectedTagInfo.getImage() ) );
         selectedTagInfo.setShortDescription( getTagInfoAttributeEdit( "Short Description", selectedTagInfo.getShortDescription() ) );
         selectedTagInfo.setLongDescription( getTagInfoAttributeEdit( "Long Description", selectedTagInfo.getLongDescription() ) );
         selectedTagInfo.setCast( getTagInfoAttributeListEdit( "Cast", selectedTagInfo.getCast() ) );
@@ -106,7 +109,7 @@ public class ConsoleApplication {
         printWriter.printf( "%sRelease Date: %s     Genre: %s     Rating: %s\n",
                 prefix, tagInfo.getReleaseDate(), tagInfo.getGenre(), tagInfo.getRating() );
         printWriter.printf( "%sTotal Chapters: %s\n", prefix, tagInfo.getTotalChapters() );
-        printWriter.printf( "%sImage: %s\n", prefix, tagInfo.getImageUrl() );
+        printWriter.printf( "%sImage: %s\n", prefix, tagInfo.getImage().getUrl() );
         printWriter.printf( "%sShort Description:\n%s\n", prefix, new BlockText( tagInfo.getShortDescription(), prefix
                 + "      ", 70 ).toString() );
         printWriter.printf( "%sLong Description:\n%s\n", prefix, new BlockText( tagInfo.getLongDescription(), prefix
@@ -167,6 +170,36 @@ public class ConsoleApplication {
     private String getTagInfoAttributeEdit( String field, String value ) {
         String newValue = System.console().readLine( "%s (%s):", field, value );
         return newValue.isEmpty() ? value : newValue;
+    }
+
+    private Image getTagInfoImageEdit( String field, Image value ) {
+        Image newImage = null;
+
+        String message = "";
+        while ( newImage == null ) {
+            String urlString = System.console().readLine( "%s%s (%s):", message, field, value.getUrl().toString() );
+            try {
+                newImage = new Image( urlString );
+            }
+            catch ( MalformedURLException e ) {
+                message = "Malformed URL - ";
+            }
+        }
+
+        return newImage;
+    }
+
+    private Rating getTagInfoRatingEdit( String field, Rating value ) {
+        String newValue = System.console().readLine( "%s (%s):", field, value );
+        String[] tokens = newValue.split( "\\|" );
+        Rating rating = null;
+        if ( tokens.length > 1 ) {
+            rating = Rating.fromStandardAndRating( tokens[0], tokens[1] );
+        }
+        else {
+            rating = Rating.fromRating( newValue );
+        }
+        return rating;
     }
 
     private void loop() {

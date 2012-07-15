@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 
+import com.lucastheisen.autotagger.tag.TagInfo.Rating;
 import com.lucastheisen.xml.XmlPullUtils;
 import com.lucastheisen.xml.XmlStreamProcessor;
 import com.lucastheisen.xml.XmlTreeNode;
@@ -66,11 +67,17 @@ public class TagChimpRepository implements Repository {
         tagInfo.setReleaseDate( info.getValue( Schema.releaseDate.toString(), 0 ) );
         tagInfo.setTotalChapters( movieChapters.getValue( Schema.totalChapters.toString(), 0 ) );
         tagInfo.setGenre( info.getValue( Schema.genre.toString(), 0 ) );
-        tagInfo.setRating( info.getValue( Schema.rating.toString(), 0 ) );
+        tagInfo.setRating( Rating.fromRating( info.getValue( Schema.rating.toString(), 0 ) ) );
         tagInfo.setShortDescription( info.getValue( Schema.shortDescription.toString(), 0 ) );
         tagInfo.setLongDescription( info.getValue( Schema.longDescription.toString(), 0 ) );
-        tagInfo.setImageUrl( movieTags.getValue( Schema.coverArtSmall.toString(), 0 ) );
-        
+        try {
+            tagInfo.setImage( new Image( movieTags.getValue( Schema.coverArtSmall.toString(), 0 ) ) );
+        }
+        catch ( MalformedURLException murle ) {
+            if ( log.isWarnEnabled() )
+                log.warn( "Invalid image url: {}", movieTags.getValue( Schema.coverArtSmall.toString(), 0 ) );
+        }
+
         XmlTreeNode cast = info.get( Schema.cast.toString(), 0 );
         if ( cast != null ) {
             tagInfo.setCast( cast.getValues( Schema.actor.toString() ) );
@@ -87,7 +94,7 @@ public class TagChimpRepository implements Repository {
         if ( screenWriters != null ) {
             tagInfo.setScreenWriters( screenWriters.getValues( Schema.screenWriters.toString() ) );
         }
-        
+
         return tagInfo;
     }
 

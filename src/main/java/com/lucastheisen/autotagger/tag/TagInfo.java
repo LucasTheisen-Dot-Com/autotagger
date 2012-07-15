@@ -1,7 +1,9 @@
 package com.lucastheisen.autotagger.tag;
 
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class TagInfo {
@@ -9,13 +11,13 @@ public class TagInfo {
     private List<String> cast;
     private List<String> directors;
     private String genre;
-    private String imageUrl;
+    private Image image;
     private String imdbId;
     private String iTunesUrl;
     private String longDescription;
     private String netflixId;
     private List<String> producers;
-    private String rating;
+    private Rating rating;
     private String releaseDate;
     private List<String> screenWriters;
     private String shortDescription;
@@ -41,15 +43,15 @@ public class TagInfo {
     public String getGenre() {
         return genre;
     }
-    
-    public String getImageUrl() {
-        return imageUrl;
+
+    public Image getImage() {
+        return image;
     }
 
     public String getImdbId() {
         return imdbId;
     }
-    
+
     public String getITunesUrl() {
         return iTunesUrl;
     }
@@ -57,7 +59,7 @@ public class TagInfo {
     public String getLongDescription() {
         return longDescription;
     }
-    
+
     public String getNetflixId() {
         return netflixId;
     }
@@ -66,7 +68,7 @@ public class TagInfo {
         return producers;
     }
 
-    public String getRating() {
+    public Rating getRating() {
         return rating;
     }
 
@@ -109,15 +111,15 @@ public class TagInfo {
     public void setGenre( String genre ) {
         this.genre = genre;
     }
-    
-    public void setImageUrl( String imageUrl ) {
-        this.imageUrl = imageUrl;
+
+    public void setImage( Image image ) {
+        this.image = image;
     }
 
     public void setImdbId( String imdbId ) {
         this.imdbId = imdbId;
     }
-    
+
     public void setITunesUrl( String iTunesUrl ) {
         this.iTunesUrl = iTunesUrl;
     }
@@ -125,7 +127,7 @@ public class TagInfo {
     public void setLongDescription( String longDescription ) {
         this.longDescription = longDescription;
     }
-    
+
     public void setNetflixId( String netflixId ) {
         this.netflixId = netflixId;
     }
@@ -134,7 +136,7 @@ public class TagInfo {
         this.producers = producers;
     }
 
-    public void setRating( String rating ) {
+    public void setRating( Rating rating ) {
         this.rating = rating;
     }
 
@@ -174,7 +176,146 @@ public class TagInfo {
                 .append( ",cast=" )
                 .append( cast == null ? "<null>" : cast )
                 .append( ",imageUrl=" )
-                .append( imageUrl == null ? "<null>" : imageUrl )
+                .append( image == null ? "<null>" : image.getUrl() )
                 .toString();
+    }
+
+    /**
+     * All known ratings as listed <a href=
+     * "http://shadowofged.blogspot.com/2008/06/itunes-content-ratings.html"
+     * >here</a>.
+     * 
+     * @author ltheisen
+     * 
+     */
+    public enum Rating {
+        auMovieNotRated("au-movie", "Not Rated", "000"),
+        auMovieG("au-movie", "G", "100"),
+        auMoviePG("au-movie", "PG", "200"),
+        auMovieM("au-movie", "M", "350"),
+        auMovieMA15("au-movie", "MA 15+", "375"),
+        auMovieR18("au-movie", "R18+", "400"),
+        auMovieUnrated("au-movie", "Unrated", "???"),
+        auTv("au-tv", "N/A", ""),
+        caMovieNotRated("ca-movie", "Not Rated", "000"),
+        caMovieG("ca-movie", "G", "100"),
+        caMoviePG("ca-movie", "PG", "200"),
+        caMovie14("ca-movie", "14", "325"),
+        caMovie18("ca-movie", "18", "400"),
+        caMovieR("ca-movie", "R", "500"),
+        caMovieUnrated("ca-movie", "Unrated", "???"),
+        caTvNotRated("ca-tv", "Not Rated", "000"),
+        caTvC("ca-tv", "C", "100"),
+        caTvC8("ca-tv", "C8", "200"),
+        caTvG("ca-tv", "G", "300"),
+        caTvPG("ca-tv", "PG", "400"),
+        caTv14("ca-tv", "14+", "500"),
+        caTv18("ca-tv", "18+", "600"),
+        caTvUnrated("ca-tv", "Unrated", "???"),
+        frMovie("fr-movie", "N/A", ""),
+        frTvNotRated("fr-tv", "Not Rated", "000"),
+        frTv10("fr-tv", "-10", "100"),
+        frTv12("fr-tv", "-12", "200"),
+        frTv16("fr-tv", "-16", "500"),
+        frTv18("fr-tv", "-18", "600"),
+        frTvUnrated("fr-tv", "Unrated", "???"),
+        deMovie("de-movie", "N/A", ""),
+        deTvNotRated("de-tv", "Not Rated", "000"),
+        deTv6("de-tv", "ab 6 Jarhen", "100"),
+        deTv12("de-tv", "ab 12 Jarhen", "200"),
+        deTv16("de-tv", "ab 16 Jarhen", "500"),
+        deTv18("de-tv", "ab 18 Jarhen", "600"),
+        deTvUnrated("de-tv", "Unrated", "???"),
+        nzMovieNotRated("nz-movie", "Not Rated", "000"),
+        nzMovieG("nz-movie", "G", "100"),
+        nzMoviePG("nz-movie", "PG", "200"),
+        nzMovieM("nz-movie", "M", "300"),
+        nzMovieR13("nz-movie", "R13", "325"),
+        nzMovieR15("nz-movie", "R15", "350"),
+        nzMovieR16("nz-movie", "R16", "375"),
+        nzMovieR18("nz-movie", "R18", "400"),
+        nzMovieR("nz-movie", "R", "500"),
+        nzMovieUnrated("nz-movie", "Unrated", "???"),
+        ukMovieNotRated("uk-movie", "Not Rated", "000"),
+        ukMovieU("uk-movie", "U", "100"),
+        ukMovieUc("uk-movie", "Uc", "150"),
+        ukMoviePG("uk-movie", "PG", "200"),
+        ukMovie12("uk-movie", "12", "300"),
+        ukMovie12A("uk-movie", "12A", "325"),
+        ukMovie15("uk-movie", "15", "350"),
+        ukMovie18("uk-movie", "18", "400"),
+        ukMovieE("uk-movie", "E", "600"),
+        ukMovieUnrated("uk-movie", "Unrated", "???"),
+        ukTvNotRated("uk-tv", "Not Rated", "000"),
+        ukTvCaution("uk-tv", "CAUTION", "500"),
+        ukTvUnrated("uk-tv", "Unrated", "???"),
+        mpaaNotRated("mpaa", "Not Rated", "000"),
+        mpaaG("mpaa", "G", "100"),
+        mpaaPG("mpaa", "PG", "200"),
+        mpaaPG13("mpaa", "PG-13", "300"),
+        mpaaR("mpaa", "R", "400"),
+        mpaaNC17("mpaa", "NC-17 (unverified)", "500"),
+        mpaaUnrated("mpaa", "Unrated", "???"),
+        usTvNotRated("us-tv", "Not Rated", "000"),
+        usTvTVY("us-tv", "TV-Y", "100"),
+        usTvTVY7("us-tv", "TV-Y7", "200"),
+        usTvTVG("us-tv", "TV-G", "300"),
+        usTvTVPG("us-tv", "TV-PG", "400"),
+        usTvTV14("us-tv", "TV-14", "500"),
+        usTvTVMA("us-tv", "TV-MA (unverified)", "600"),
+        usTvUnrated("us-tv", "Unrated", "???");
+
+        private String standard;
+        private String rating;
+        private String score;
+        private static Map<String, Rating> lookup;
+
+        static {
+            lookup = new HashMap<>();
+            for ( Rating rating : Rating.values() ) {
+                lookup.put( new StringBuilder( getKey( rating.getStandard(), rating.getRating() ) ).toString(), rating );
+            }
+        }
+
+        private Rating( String standard, String rating, String score ) {
+            this.standard = standard;
+            this.rating = rating;
+            this.score = score;
+        }
+
+        public static Rating fromRating( String rating ) {
+            return fromStandardAndRating( "mpaa", rating );
+        }
+
+        public static Rating fromStandardAndRating( String standard,
+                String rating ) {
+            return lookup.get( getKey( standard, rating ) );
+        }
+
+        private static String getKey( String standard, String rating ) {
+            return new StringBuilder( standard ).append( "|" ).append( rating ).toString().toUpperCase();
+        }
+
+        public String getRating() {
+            return rating;
+        }
+
+        public String getScore() {
+            return score;
+        }
+
+        public String getStandard() {
+            return standard;
+        }
+
+        @Override
+        public String toString() {
+            return new StringBuilder( standard )
+                    .append( "|" )
+                    .append( rating )
+                    .append( "|" )
+                    .append( score )
+                    .toString();
+        }
     }
 }
