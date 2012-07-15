@@ -49,11 +49,15 @@ public class IsoParserReader implements Reader {
         return tagInfo;
     }
     
+    private <T extends Box> void parse( Class<T> clazz, Box box, TagInfo tagInfo ) {
+        parserMap.get( clazz ).parse( clazz.cast( box ), tagInfo );
+    }
+    
     public void recurse( ContainerBox containerBox, TagInfo tagInfo ) {
         for ( Box box : containerBox.getBoxes() ) {
             Class<? extends Box> clazz = box.getClass();
             if ( parserMap.containsKey( clazz ) ) {
-                parserMap.get( clazz ).parse( clazz.cast( containerBox ), tagInfo );
+                parse( clazz, containerBox, tagInfo );
             }
             else if ( box instanceof ContainerBox ) {
                 recurse( containerBox, tagInfo );

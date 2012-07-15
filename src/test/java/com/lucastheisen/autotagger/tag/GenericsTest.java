@@ -75,6 +75,10 @@ public class GenericsTest {
         }
     }
     
+    private <T extends Box> void parse( Registry registry, Class<T> clazz, Box  box ) {
+        registry.get( clazz ).parse( clazz.cast( box ) );        
+    }
+    
     public void runTest() {
         Registry registry = new Registry();
         registry.add( BoxA.class, new ParserA() );
@@ -88,7 +92,7 @@ public class GenericsTest {
         
         for ( Box box : boxes ) {
             Class<? extends Box> clazz = box.getClass();
-            registry.get( clazz ).parse( clazz.cast( box ) );
+            parse( registry, clazz, box );
         }
     }
 
