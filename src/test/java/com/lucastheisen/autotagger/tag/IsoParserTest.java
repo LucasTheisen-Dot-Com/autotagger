@@ -17,8 +17,6 @@ import com.coremedia.iso.boxes.AbstractFullBox;
 import com.coremedia.iso.boxes.Box;
 import com.coremedia.iso.boxes.ContainerBox;
 import com.coremedia.iso.boxes.HandlerBox;
-import com.coremedia.iso.boxes.MovieBox;
-import com.coremedia.iso.boxes.UserDataBox;
 import com.coremedia.iso.boxes.apple.AppleDataBox;
 import com.coremedia.iso.boxes.apple.AppleGenericBox;
 import com.coremedia.iso.boxes.apple.AppleItemListBox;
@@ -44,20 +42,20 @@ public class IsoParserTest {
         for ( Box box : containerBox.getBoxes() ) {
             append( builder, prefix, box );
             builder.append( " (" );
-            
+
             boolean first = true;
             if ( box instanceof AbstractFullBox ) {
-                AbstractFullBox afBox = (AbstractFullBox)box;
-                builder.append( "flags=" ).append(afBox.getFlags() );
+                AbstractFullBox afBox = (AbstractFullBox) box;
+                builder.append( "flags=" ).append( afBox.getFlags() );
                 first = false;
             }
-            
+
             if ( box instanceof HandlerBox ) {
                 HandlerBox handlerBox = (HandlerBox) box;
                 if ( first ) {
                     first = false;
                 }
-                else { 
+                else {
                     builder.append( "," );
                 }
                 builder.append( "name=" )
@@ -66,17 +64,17 @@ public class IsoParserTest {
                         .append( handlerBox.getHandlerType() );
             }
             else if ( box instanceof AppleItemListBox ) {
-                AppleItemListBox ailBox = (AppleItemListBox) box;
+                //AppleItemListBox ailBox = (AppleItemListBox) box;
             }
             else if ( box instanceof AppleGenericBox ) {
-                AppleGenericBox agBox = (AppleGenericBox) box;
+                //AppleGenericBox agBox = (AppleGenericBox) box;
             }
             else if ( box instanceof AppleMeanBox ) {
                 AppleMeanBox amBox = (AppleMeanBox) box;
                 if ( first ) {
                     first = false;
                 }
-                else { 
+                else {
                     builder.append( "," );
                 }
                 builder.append( "meaning=" )
@@ -87,7 +85,7 @@ public class IsoParserTest {
                 if ( first ) {
                     first = false;
                 }
-                else { 
+                else {
                     builder.append( "," );
                 }
                 builder.append( "name=" )
@@ -98,15 +96,17 @@ public class IsoParserTest {
                 if ( first ) {
                     first = false;
                 }
-                else { 
+                else {
                     builder.append( "," );
                 }
                 builder.append( "fourBytes=" )
                         .append( new String( adBox.getFourBytes() ) )
                         .append( ",data=" )
-                        .append( adBox.getFlags() == 13 || adBox.getFlags() == 14 ? "<binary>" : new String( adBox.getData() ) );
+                        .append( adBox.getFlags() == 13
+                                || adBox.getFlags() == 14 ? "<binary>"
+                                : new String( adBox.getData() ) );
             }
-            
+
             builder.append( ")" );
 
             if ( box instanceof ContainerBox ) {
@@ -117,14 +117,19 @@ public class IsoParserTest {
 
     @Test
     public void testGetFields() throws IOException {
-        //File file = new File( "data/TomorrowNeverDies.m4v" );
-        //File file = new File( "data/AustinPowersInternationalManOfMystery.m4v" );
+        // File file = new File( "data/TomorrowNeverDies.m4v" );
+        // File file = new File(
+        // "data/AustinPowersInternationalManOfMystery.m4v" );
         File file = new File( "\\\\LTSERVER\\Videos\\300.m4v" );
         FileChannel fc = new FileInputStream( file ).getChannel();
         IsoFile isoFile = new IsoFile( fc );
 
         StringBuilder builder = new StringBuilder( "--- " ).append( file.getName() ).append( " ---" );
-        appendBoxes( builder, "\n\t", isoFile.getBoxes( MovieBox.class ).get( 0 ).getBoxes( UserDataBox.class ).get( 0 ) );
+        // appendBoxes( builder, "\n\t", isoFile.getBoxes( MovieBox.class ).get(
+        // 0 ).getBoxes( UserDataBox.class ).get( 0 ) );
+        // appendBoxes( builder, "\n\t", isoFile.getBoxes( MovieBox.class ).get(
+        // 0 ) );
+        appendBoxes( builder, "\n\t", isoFile );
         builder.append( "\n--- END " ).append( file.getName() ).append( " ---" );
 
         log.info( builder.toString() );

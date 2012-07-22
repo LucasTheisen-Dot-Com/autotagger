@@ -21,7 +21,8 @@ import com.lucastheisen.autotagger.tag.TagInfo;
 
 
 /**
- * Uses ISO parser provided by the mp4parser project.
+ * Uses <a href="http://code.google.com/p/mp4parser/">ISO parser</a> provided by
+ * the mp4parser project.
  * 
  * Details on fields can be found <a
  * href="http://atomicparsley.sourceforge.net/mpeg-4files.html">here</a>.
@@ -32,6 +33,10 @@ public class IsoParserReader implements Reader {
     private static Logger log = LoggerFactory.getLogger( IsoParserReader.class );
 
     private TypeSafeParserMap parserMap;
+
+    public IsoParserReader( TypeSafeParserMap parserMap ) {
+        this.parserMap = parserMap;
+    }
 
     @Override
     public TagInfo read( File file ) {
@@ -48,21 +53,20 @@ public class IsoParserReader implements Reader {
 
         return tagInfo;
     }
-    
+
     private <T extends Box> void parse( Class<T> clazz, Box box, TagInfo tagInfo ) {
         parserMap.get( clazz ).parse( clazz.cast( box ), tagInfo );
     }
-    
+
     public void recurse( ContainerBox containerBox, TagInfo tagInfo ) {
         for ( Box box : containerBox.getBoxes() ) {
             Class<? extends Box> clazz = box.getClass();
             if ( parserMap.containsKey( clazz ) ) {
-                parse( clazz, containerBox, tagInfo );
+                parse( clazz, box, tagInfo );
             }
             else if ( box instanceof ContainerBox ) {
-                recurse( containerBox, tagInfo );
+                recurse( (ContainerBox) box, tagInfo );
             }
         }
     }
-    
 }

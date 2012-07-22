@@ -129,7 +129,8 @@ public class XmlPullUtils {
      * {@link javax.xml.stream.XMLStreamConstants#START_ELEMENT START_ELEMENT}
      * of the sibling and return true. Otherwise, the reader will stop at the
      * {@link javax.xml.stream.XMLStreamConstants#END_ELEMENT END_ELEMENT} of
-     * the parent of the current element and return false.
+     * the parent of the current element and return false. Safe even if already
+     * at the <code>END_ELEMENT</code> of a current element.
      * 
      * @param reader
      * @return <code>true</code>, if a next sibling was found,
@@ -258,19 +259,19 @@ public class XmlPullUtils {
         public String getValue() {
             return value;
         }
-        
+
         @Override
         public String getValue( String key, int index ) {
             XmlTreeNode value = get( key, index );
             return value == null ? null : value.getValue();
         }
-        
+
         @Override
         public List<String> getValues( String key ) {
             List<XmlTreeNode> list = map.get( key );
-            
+
             if ( list == null ) return null;
-            
+
             List<String> values = new ArrayList<>();
             for ( XmlTreeNode node : list ) {
                 values.add( node.getValue() );

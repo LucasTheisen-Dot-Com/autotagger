@@ -5,7 +5,7 @@ import com.coremedia.iso.boxes.Box;
 import com.lucastheisen.autotagger.tag.TagInfo;
 
 
-public interface Parser<T extends Box> {
+public interface BoxParser<T extends Box> {
     /**
      * Parses the provided box loading the fields in <code>tagInfo</code> that
      * it contains information for.

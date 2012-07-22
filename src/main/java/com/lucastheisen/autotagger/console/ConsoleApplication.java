@@ -9,18 +9,23 @@ import java.util.Arrays;
 import java.util.List;
 
 
+import com.coremedia.iso.boxes.apple.AppleItemListBox;
 import com.lucastheisen.autotagger.tag.Image;
-import com.lucastheisen.autotagger.tag.JaudiotaggerReader;
-import com.lucastheisen.autotagger.tag.JaudiotaggerWriter;
 import com.lucastheisen.autotagger.tag.Reader;
 import com.lucastheisen.autotagger.tag.Repository;
 import com.lucastheisen.autotagger.tag.TagChimpRepository;
 import com.lucastheisen.autotagger.tag.TagInfo;
 import com.lucastheisen.autotagger.tag.TagInfo.Rating;
 import com.lucastheisen.autotagger.tag.Writer;
+import com.lucastheisen.autotagger.tag.mp4parser.AppleItemListBoxParser;
+import com.lucastheisen.autotagger.tag.mp4parser.AppleItemListBoxWriter;
+import com.lucastheisen.autotagger.tag.mp4parser.IsoParserReader;
+import com.lucastheisen.autotagger.tag.mp4parser.IsoParserWriter;
+import com.lucastheisen.autotagger.tag.mp4parser.TypeSafeParserMap;
 
 
 public class ConsoleApplication {
+    private Console console;
     private Reader reader;
     private Repository repository;
     private Writer writer;
@@ -30,6 +35,7 @@ public class ConsoleApplication {
         this.repository = repository;
         this.reader = reader;
         this.writer = writer;
+        this.console = new Console();
     }
 
     private void editTagInfo( TagInfo selectedTagInfo ) {
@@ -109,7 +115,9 @@ public class ConsoleApplication {
         printWriter.printf( "%sRelease Date: %s     Genre: %s     Rating: %s\n",
                 prefix, tagInfo.getReleaseDate(), tagInfo.getGenre(), tagInfo.getRating() );
         printWriter.printf( "%sTotal Chapters: %s\n", prefix, tagInfo.getTotalChapters() );
-        printWriter.printf( "%sImage: %s\n", prefix, tagInfo.getImage().getUrl() );
+        printWriter.printf( "%sImage: %s\n", prefix, tagInfo.getImage() == null ? null
+                : (tagInfo.getImage().getUrl() == null ? "<binary>"
+                        : tagInfo.getImage().getUrl()) );
         printWriter.printf( "%sShort Description:\n%s\n", prefix, new BlockText( tagInfo.getShortDescription(), prefix
                 + "      ", 70 ).toString() );
         printWriter.printf( "%sLong Description:\n%s\n", prefix, new BlockText( tagInfo.getLongDescription(), prefix
@@ -162,13 +170,13 @@ public class ConsoleApplication {
                 builder.append( item );
             }
         }
-        String newValue = System.console().readLine( "%s (%s):", field, builder.toString() );
+        String newValue = console.readLine( "%s (%s):", field, builder.toString() );
         return newValue.isEmpty() ? list
                 : Arrays.asList( newValue.split( "," ) );
     }
 
     private String getTagInfoAttributeEdit( String field, String value ) {
-        String newValue = System.console().readLine( "%s (%s):", field, value );
+        String newValue = console.readLine( "%s (%s):", field, value );
         return newValue.isEmpty() ? value : newValue;
     }
 
@@ -177,7 +185,7 @@ public class ConsoleApplication {
 
         String message = "";
         while ( newImage == null ) {
-            String urlString = System.console().readLine( "%s%s (%s):", message, field, value.getUrl().toString() );
+            String urlString = console.readLine( "%s%s (%s):", message, field, value.getUrl().toString() );
             try {
                 newImage = new Image( urlString );
             }
@@ -190,7 +198,7 @@ public class ConsoleApplication {
     }
 
     private Rating getTagInfoRatingEdit( String field, Rating value ) {
-        String newValue = System.console().readLine( "%s (%s):", field, value );
+        String newValue = console.readLine( "%s (%s):", field, value );
         String[] tokens = newValue.split( "\\|" );
         Rating rating = null;
         if ( tokens.length > 1 ) {
@@ -208,25 +216,25 @@ public class ConsoleApplication {
             String fileMessage = "";
             File file = new File( "thisfiledoesnotexistunlessyouarereallystrange.zzz" );
             while ( !file.exists() ) {
-                file = new File( System.console().readLine( "%sFilename: ", fileMessage ) );
+                file = new File( console.readLine( "%sFilename: ", fileMessage ) );
                 fileMessage = "File does not exist\n\n";
             }
 
             TagInfo originalTagInfo = reader.read( file );
-            System.console().printf( "Current Tag Info:\n%s\n", formatTagInfo( originalTagInfo, "    " ) );
-            String continueString = System.console().readLine( "Continue? (yes): " );
+            console.printf( "Current Tag Info:\n%s\n", formatTagInfo( originalTagInfo, "    " ) );
+            String continueString = console.readLine( "Continue? (yes): " );
             if ( continueString.isEmpty()
                     || continueString.equalsIgnoreCase( "yes" ) ) {
 
                 String defaultTitle = filenameToTitle( file.getName() );
-                String title = System.console().readLine( "Title (%s): ", defaultTitle );
+                String title = console.readLine( "Title (%s): ", defaultTitle );
                 if ( title.isEmpty() ) title = defaultTitle;
 
                 List<TagInfo> tagInfoList = repository.search( title, 1 );
 
                 int i = 0;
                 for ( TagInfo tagInfo : tagInfoList ) {
-                    System.console().printf( formatTagInfo( tagInfo, i ) );
+                    console.printf( formatTagInfo( tagInfo, i ) );
                     i++;
                 }
 
@@ -234,7 +242,7 @@ public class ConsoleApplication {
                 int maxChoice = i - 1;
                 int choice = -1;
                 while ( choice < 0 || choice > maxChoice ) {
-                    String choiceString = System.console().readLine( "%sChoice (0-%d): ", choiceMessage, maxChoice );
+                    String choiceString = console.readLine( "%sChoice (0-%d): ", choiceMessage, maxChoice );
                     choiceMessage = "Choice out of range\n\n";
 
                     try {
@@ -249,36 +257,39 @@ public class ConsoleApplication {
 
                 TagInfo selectedTagInfo = tagInfoList.get( choice );
 
-                System.console().printf( "Selected Tag Info:\n%s\n", formatTagInfo( selectedTagInfo, "    " ) );
-                String editString = System.console().readLine( "Edit? (no): " );
+                console.printf( "Selected Tag Info:\n%s\n", formatTagInfo( selectedTagInfo, "    " ) );
+                String editString = console.readLine( "Edit? (no): " );
                 if ( editString.equalsIgnoreCase( "yes" ) ) {
                     boolean satisfied = false;
                     while ( !satisfied ) {
                         editTagInfo( selectedTagInfo );
-                        System.console().printf( "Selected Tag Info:\n%s\n", formatTagInfo( selectedTagInfo, "    " ) );
-                        String satisfiedString = System.console().readLine( "Satisfied? (no): " );
+                        console.printf( "Selected Tag Info:\n%s\n", formatTagInfo( selectedTagInfo, "    " ) );
+                        String satisfiedString = console.readLine( "Satisfied? (no): " );
                         satisfied = satisfiedString.equalsIgnoreCase( "yes" );
                     }
                 }
 
                 try {
                     writer.write( file, selectedTagInfo );
-                    System.console().printf( "Tagging successful\n\n" );
+                    console.printf( "Tagging successful\n\n" );
                 }
                 catch ( Exception e ) {
-                    System.console().printf( "Tagging failed: %s\n\n", e.getMessage() );
+                    console.printf( "Tagging failed: %s\n\n", e.getMessage() );
                 }
             }
 
-            String anotherString = System.console().readLine( "Another? (yes): " );
+            String anotherString = console.readLine( "Another? (yes): " );
             another = (anotherString.isEmpty() || anotherString.equalsIgnoreCase( "yes" ));
         }
     }
 
     public static void main( String[] args ) {
         Repository repository = new TagChimpRepository( "http", "www.tagchimp.com", "/ape/search.php", "10664939374FF64C1FA0EFE" );
-        Writer writer = new JaudiotaggerWriter();
-        Reader reader = new JaudiotaggerReader();
+        Writer writer = new IsoParserWriter( new AppleItemListBoxWriter() );
+
+        TypeSafeParserMap parserMap = new TypeSafeParserMap();
+        parserMap.add( AppleItemListBox.class, new AppleItemListBoxParser() );
+        IsoParserReader reader = new IsoParserReader( parserMap );
 
         new ConsoleApplication( repository, reader, writer ).loop();
     }
