@@ -2,7 +2,6 @@ package com.lucastheisen.autotagger.tag.mp4parser;
 
 
 import java.io.ByteArrayInputStream;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,17 +14,13 @@ import org.slf4j.LoggerFactory;
 
 
 import com.coremedia.iso.boxes.Box;
-import com.coremedia.iso.boxes.ContainerBox;
 import com.coremedia.iso.boxes.apple.AppleArtistBox;
 import com.coremedia.iso.boxes.apple.AppleCoverBox;
 import com.coremedia.iso.boxes.apple.AppleCustomGenreBox;
-import com.coremedia.iso.boxes.apple.AppleDataBox;
 import com.coremedia.iso.boxes.apple.AppleDescriptionBox;
 import com.coremedia.iso.boxes.apple.AppleEncoderBox;
 import com.coremedia.iso.boxes.apple.AppleGenericBox;
 import com.coremedia.iso.boxes.apple.AppleItemListBox;
-import com.coremedia.iso.boxes.apple.AppleMeanBox;
-import com.coremedia.iso.boxes.apple.AppleNameBox;
 import com.coremedia.iso.boxes.apple.AppleRecordingYearBox;
 import com.coremedia.iso.boxes.apple.AppleSynopsisBox;
 import com.coremedia.iso.boxes.apple.AppleTrackTitleBox;
@@ -33,13 +28,14 @@ import com.lucastheisen.autotagger.perl.PerlHash;
 import com.lucastheisen.autotagger.tag.Image;
 import com.lucastheisen.autotagger.tag.TagInfo;
 import com.lucastheisen.autotagger.tag.TagInfo.Rating;
+import com.lucastheisen.autotagger.tag.mp4parser.AppleBoxUtils.PlistKey;
+import com.lucastheisen.autotagger.tag.mp4parser.AppleBoxUtils.PlistSchema;
 import com.lucastheisen.xml.XmlPullUtils;
 import com.lucastheisen.xml.XmlStreamProcessor;
 
 
 public class AppleItemListBoxParser implements BoxParser<AppleItemListBox> {
     private static Logger log = LoggerFactory.getLogger( AppleItemListBoxParser.class );
-    private static final Charset UTF8 = Charset.forName( "UTF-8" );
 
     @Override
     public void parse( AppleItemListBox appleItemListBox, final TagInfo tagInfo ) {
@@ -92,15 +88,15 @@ public class AppleItemListBoxParser implements BoxParser<AppleItemListBox> {
                 tagInfo.setLongDescription( ((AppleSynopsisBox) box).getValue() );
             }
             else if ( box instanceof AppleCoverBox ) {
-                tagInfo.setImage( new Image( getData( (AppleCoverBox) box) ) );
+                tagInfo.setImage( new Image( AppleBoxUtils.getData( (AppleCoverBox) box ) ) );
             }
             else if ( box instanceof AppleGenericBox ) {
-                String meaning = getMeaning( (AppleGenericBox) box );
-                String name = getName( (AppleGenericBox) box );
-                byte[] data = getData( (AppleGenericBox) box );
+                String meaning = AppleBoxUtils.getMeaning( (AppleGenericBox) box );
+                String name = AppleBoxUtils.getName( (AppleGenericBox) box );
+                byte[] data = AppleBoxUtils.getData( (AppleGenericBox) box );
                 if ( data != null && "com.apple.iTunes".equals( meaning ) ) {
                     if ( "iTunEXTC".equals( name ) ) {
-                        String[] ratingTokens = new String( data, UTF8 ).split( "\\|" );
+                        String[] ratingTokens = new String( data, AppleBoxUtils.CHARSET ).split( "\\|" );
                         if ( ratingTokens.length > 1 ) {
                             tagInfo.setRating( Rating.fromStandardAndRating( ratingTokens[0], ratingTokens[1] ) );
                         }
@@ -116,13 +112,13 @@ public class AppleItemListBoxParser implements BoxParser<AppleItemListBox> {
                                         if ( XmlPullUtils.advanceToChildElement( reader, PlistSchema.plist.toString() ) ) {
                                             if ( XmlPullUtils.advanceToChildElement( reader, PlistSchema.dict.toString() ) ) {
                                                 PerlHash map = processDict( reader );
-                                                PerlHash cast = map.get( "cast" );
+                                                PerlHash cast = map.get( PlistKey.cast.toString() );
                                                 if ( cast != null ) {
                                                     for ( PerlHash member : cast ) {
                                                         castFromPlist.add( (String) member.get( "name" ).value() );
                                                     }
                                                 }
-                                                PerlHash directors = map.get( "directors" );
+                                                PerlHash directors = map.get( PlistKey.directors.toString() );
                                                 if ( directors != null ) {
                                                     List<String> directorList = new ArrayList<>();
                                                     for ( PerlHash director : directors ) {
@@ -130,7 +126,7 @@ public class AppleItemListBoxParser implements BoxParser<AppleItemListBox> {
                                                     }
                                                     tagInfo.setDirectors( directorList );
                                                 }
-                                                PerlHash producers = map.get( "producers" );
+                                                PerlHash producers = map.get( PlistKey.producers.toString() );
                                                 if ( producers != null ) {
                                                     List<String> producerList = new ArrayList<>();
                                                     for ( PerlHash producer : producers ) {
@@ -138,7 +134,7 @@ public class AppleItemListBoxParser implements BoxParser<AppleItemListBox> {
                                                     }
                                                     tagInfo.setProducers( producerList );
                                                 }
-                                                PerlHash screenWriters = map.get( "screenwriters" );
+                                                PerlHash screenWriters = map.get( PlistKey.screenwriters.toString() );
                                                 if ( screenWriters != null ) {
                                                     List<String> screenWriterList = new ArrayList<>();
                                                     for ( PerlHash screenWriter : screenWriters ) {
@@ -193,25 +189,5 @@ public class AppleItemListBoxParser implements BoxParser<AppleItemListBox> {
         } while ( XmlPullUtils.advanceToNextSiblingElement( reader ) );
 
         return map;
-    }
-
-    private byte[] getData( ContainerBox box ) {
-        return box.getBoxes( AppleDataBox.class ).get( 0 ).getData();
-    }
-
-    private String getMeaning( AppleGenericBox box ) {
-        return box.getBoxes( AppleMeanBox.class ).get( 0 ).getMeaning();
-    }
-
-    private String getName( AppleGenericBox box ) {
-        return box.getBoxes( AppleNameBox.class ).get( 0 ).getName();
-    }
-
-    private enum PlistSchema {
-        plist,
-        key,
-        array,
-        dict,
-        string
     }
 }
