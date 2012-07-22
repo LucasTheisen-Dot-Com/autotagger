@@ -39,6 +39,7 @@ public class ConsoleApplication {
     }
 
     private void editTagInfo( TagInfo selectedTagInfo ) {
+        // ugly, but works...  for now
         selectedTagInfo.setAmazonAsin( getTagInfoAttributeEdit( "Identifier - amazon", selectedTagInfo.getAmazonAsin() ) );
         selectedTagInfo.setImdbId( getTagInfoAttributeEdit( "Identifier - imdb", selectedTagInfo.getImdbId() ) );
         selectedTagInfo.setITunesUrl( getTagInfoAttributeEdit( "Identifier - itunes", selectedTagInfo.getITunesUrl() ) );
@@ -185,7 +186,7 @@ public class ConsoleApplication {
 
         String message = "";
         while ( newImage == null ) {
-            String urlString = console.readLine( "%s%s (%s):", message, field, value.getUrl().toString() );
+            String urlString = console.readLine( "%s%s (%s):", message, field, value == null ? null : value.getUrl().toString() );
             try {
                 Image.Type imageType = null;
                 if ( urlString.endsWith( ".jpg" ) ) {
@@ -239,33 +240,45 @@ public class ConsoleApplication {
 
                 List<TagInfo> tagInfoList = repository.search( title, 1 );
 
-                int i = 0;
-                for ( TagInfo tagInfo : tagInfoList ) {
-                    console.printf( formatTagInfo( tagInfo, i ) );
-                    i++;
+                TagInfo selectedTagInfo = null;
+                if ( tagInfoList.size() > 0 ) {
+                    int i = 0;
+                    for ( TagInfo tagInfo : tagInfoList ) {
+                        console.printf( formatTagInfo( tagInfo, i ) );
+                        i++;
+                    }
+
+                    String choiceMessage = "";
+                    int maxChoice = i - 1;
+                    int choice = -1;
+                    while ( choice < 0 || choice > maxChoice ) {
+                        String choiceString = console.readLine( "%sChoice (0-%d): ", choiceMessage, maxChoice );
+                        choiceMessage = "Choice out of range\n\n";
+
+                        try {
+                            choice = Integer.parseInt( choiceString );
+                        }
+                        catch ( NumberFormatException nfe ) {
+                            choiceMessage = "Invalid choice: "
+                                    + nfe.getMessage()
+                                    + "\n\n";
+                            choice = -1;
+                        }
+                    }
+
+                    selectedTagInfo = tagInfoList.get( choice );
+
+                    console.printf( "Selected Tag Info:\n%s\n", formatTagInfo( selectedTagInfo, "    " ) );
                 }
 
-                String choiceMessage = "";
-                int maxChoice = i - 1;
-                int choice = -1;
-                while ( choice < 0 || choice > maxChoice ) {
-                    String choiceString = console.readLine( "%sChoice (0-%d): ", choiceMessage, maxChoice );
-                    choiceMessage = "Choice out of range\n\n";
-
-                    try {
-                        choice = Integer.parseInt( choiceString );
-                    }
-                    catch ( NumberFormatException nfe ) {
-                        choiceMessage = "Invalid choice: " + nfe.getMessage()
-                                + "\n\n";
-                        choice = -1;
-                    }
+                String editString = null;
+                if ( selectedTagInfo == null ) {
+                    editString = "yes";
+                    selectedTagInfo = new TagInfo();
                 }
-
-                TagInfo selectedTagInfo = tagInfoList.get( choice );
-
-                console.printf( "Selected Tag Info:\n%s\n", formatTagInfo( selectedTagInfo, "    " ) );
-                String editString = console.readLine( "Edit? (no): " );
+                else {
+                    editString = console.readLine( "Edit? (no): " );
+                }
                 if ( editString.equalsIgnoreCase( "yes" ) ) {
                     boolean satisfied = false;
                     while ( !satisfied ) {

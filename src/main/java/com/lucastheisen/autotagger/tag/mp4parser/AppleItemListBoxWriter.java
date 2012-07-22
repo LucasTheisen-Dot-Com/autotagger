@@ -22,7 +22,6 @@ import com.lucastheisen.autotagger.tag.mp4parser.AppleBoxUtils.PlistKey;
 
 
 public class AppleItemListBoxWriter implements BoxWriter<MetaBox> {
-
     private void appendListToDict( StringBuilder builder, PlistKey key,
             List<String> values ) {
         builder.append( "    <key>" ).append( key.toString() ).append( "</key>\n" )
@@ -76,8 +75,9 @@ public class AppleItemListBoxWriter implements BoxWriter<MetaBox> {
         // Prepare generic boxes...
         AppleGenericBox iTunEXTC = null;
         AppleGenericBox iTunMOVI = null;
-        for ( AppleGenericBox appleGenericBox : metaBox.getBoxes( AppleGenericBox.class ) ) {
-            GenericName name = GenericName.forText( AppleBoxUtils.getName( appleGenericBox ) );
+        for ( AppleGenericBox appleGenericBox : appleItemListBox.getBoxes( AppleGenericBox.class ) ) {
+            GenericName name = GenericName.forText( AppleBoxUtils.getName(
+                    appleGenericBox ) );
             if ( name != null ) {
                 switch ( name ) {
                 case iTunEXTC:

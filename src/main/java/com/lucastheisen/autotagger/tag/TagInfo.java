@@ -1,6 +1,9 @@
 package com.lucastheisen.autotagger.tag;
 
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -100,8 +103,16 @@ public class TagInfo {
         this.amazonAsin = amazonAsin;
     }
 
+    public void setCast( String... cast ) {
+        setCast( Arrays.asList( cast ) );
+    }
+
     public void setCast( List<String> cast ) {
         this.cast = cast;
+    }
+
+    public void setDirectors( String... directors ) {
+        setDirectors( Arrays.asList( directors ) );
     }
 
     public void setDirectors( List<String> directors ) {
@@ -112,6 +123,10 @@ public class TagInfo {
         this.genre = genre;
     }
 
+    public void setImage( InputStream inputStream, Image.Type type ) throws IOException {
+        this.image = new Image( inputStream, type );
+    }
+    
     public void setImage( Image image ) {
         this.image = image;
     }
@@ -132,6 +147,10 @@ public class TagInfo {
         this.netflixId = netflixId;
     }
 
+    public void setProducers( String... producers ) {
+        setProducers( Arrays.asList( producers ) );
+    }
+
     public void setProducers( List<String> producers ) {
         this.producers = producers;
     }
@@ -142,6 +161,10 @@ public class TagInfo {
 
     public void setReleaseDate( String releaseDate ) {
         this.releaseDate = releaseDate;
+    }
+
+    public void setScreenWriters( String... screenWriters ) {
+        setScreenWriters( Arrays.asList( screenWriters ) );
     }
 
     public void setScreenWriters( List<String> screenWriters ) {

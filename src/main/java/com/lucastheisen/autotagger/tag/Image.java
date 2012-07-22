@@ -2,6 +2,7 @@ package com.lucastheisen.autotagger.tag;
 
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -22,6 +23,10 @@ public class Image {
         this.bytes = bytes;
         this.type = type;
     }
+    
+    public Image( InputStream inputStream, Type type ) throws IOException {
+        this( getBytesFromStream( inputStream ), type );
+    }
 
     public Image( String url, Type type ) throws MalformedURLException {
         this( new URL( url ), type );
@@ -30,6 +35,17 @@ public class Image {
     public Image( URL url, Type type ) {
         this.url = url;
         this.type = type;
+    }
+    
+    private static byte[] getBytesFromStream( InputStream inputStream ) throws IOException {
+        ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+        int nRead;
+        byte[] data = new byte[16384];
+        while ( (nRead = inputStream.read( data, 0, data.length )) != -1 ) {
+            buffer.write( data, 0, nRead );
+        }
+        buffer.flush();
+        return buffer.toByteArray();
     }
 
     public URL getUrl() {
@@ -40,14 +56,7 @@ public class Image {
         if ( bytes == null ) {
             //TODO: check the URL connection headers to get content type to verify either png or jpg (safer than trusting extension)
             try ( InputStream inputStream = url.openStream()) {
-                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                int nRead;
-                byte[] data = new byte[16384];
-                while ( (nRead = inputStream.read( data, 0, data.length )) != -1 ) {
-                    buffer.write( data, 0, nRead );
-                }
-                buffer.flush();
-                bytes = buffer.toByteArray();
+                bytes = getBytesFromStream( inputStream );
             }
             catch ( MalformedURLException murle ) {
                 bytes = null;

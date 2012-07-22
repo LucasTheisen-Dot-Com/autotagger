@@ -1,10 +1,9 @@
 package com.lucastheisen.autotagger.tag;
 
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 
 
 import org.junit.Test;
@@ -64,10 +63,10 @@ public class IsoParserTest {
                         .append( handlerBox.getHandlerType() );
             }
             else if ( box instanceof AppleItemListBox ) {
-                //AppleItemListBox ailBox = (AppleItemListBox) box;
+                // AppleItemListBox ailBox = (AppleItemListBox) box;
             }
             else if ( box instanceof AppleGenericBox ) {
-                //AppleGenericBox agBox = (AppleGenericBox) box;
+                // AppleGenericBox agBox = (AppleGenericBox) box;
             }
             else if ( box instanceof AppleMeanBox ) {
                 AppleMeanBox amBox = (AppleMeanBox) box;
@@ -117,21 +116,16 @@ public class IsoParserTest {
 
     @Test
     public void testGetFields() throws IOException {
-        // File file = new File( "data/TomorrowNeverDies.m4v" );
-        // File file = new File(
-        // "data/AustinPowersInternationalManOfMystery.m4v" );
-        File file = new File( "\\\\LTSERVER\\Videos\\300.m4v" );
-        FileChannel fc = new FileInputStream( file ).getChannel();
-        IsoFile isoFile = new IsoFile( fc );
+        String name = "boovsthevegetabledrawer.m4v";
+        // ReadableByteChannel rbc = new FileInputStream( file ).getChannel();
+        try ( ReadableByteChannel rbc = Channels.newChannel( getClass().getResourceAsStream( "/boovsthevegetabledrawer.m4v" ) ) ;) {
+            IsoFile isoFile = new IsoFile( rbc );
 
-        StringBuilder builder = new StringBuilder( "--- " ).append( file.getName() ).append( " ---" );
-        // appendBoxes( builder, "\n\t", isoFile.getBoxes( MovieBox.class ).get(
-        // 0 ).getBoxes( UserDataBox.class ).get( 0 ) );
-        // appendBoxes( builder, "\n\t", isoFile.getBoxes( MovieBox.class ).get(
-        // 0 ) );
-        appendBoxes( builder, "\n\t", isoFile );
-        builder.append( "\n--- END " ).append( file.getName() ).append( " ---" );
+            StringBuilder builder = new StringBuilder( "--- " ).append( name ).append( " ---" );
+            appendBoxes( builder, "\n\t", isoFile );
+            builder.append( "\n--- END " ).append( name ).append( " ---" );
 
-        log.info( builder.toString() );
+            log.info( builder.toString() );
+        }
     }
 }
