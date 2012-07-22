@@ -187,7 +187,14 @@ public class ConsoleApplication {
         while ( newImage == null ) {
             String urlString = console.readLine( "%s%s (%s):", message, field, value.getUrl().toString() );
             try {
-                newImage = new Image( urlString );
+                Image.Type imageType = null;
+                if ( urlString.endsWith( ".jpg" ) ) {
+                    imageType = Image.Type.jpg;
+                }
+                if ( urlString.endsWith( ".png" ) ) {
+                    imageType = Image.Type.png;
+                }
+                newImage = new Image( urlString, imageType );
             }
             catch ( MalformedURLException e ) {
                 message = "Malformed URL - ";

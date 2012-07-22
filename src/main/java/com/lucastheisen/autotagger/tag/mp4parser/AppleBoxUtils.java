@@ -20,6 +20,10 @@ public class AppleBoxUtils {
     public static byte[] getData( ContainerBox box ) {
         return box.getBoxes( AppleDataBox.class ).get( 0 ).getData();
     }
+    
+    public static int getFlags( ContainerBox box ) {
+        return box.getBoxes( AppleDataBox.class ).get( 0 ).getFlags();
+    }
 
     public static String getMeaning( AppleGenericBox box ) {
         return box.getBoxes( AppleMeanBox.class ).get( 0 ).getMeaning();

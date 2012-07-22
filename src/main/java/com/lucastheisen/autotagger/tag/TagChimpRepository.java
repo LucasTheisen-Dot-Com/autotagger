@@ -71,7 +71,15 @@ public class TagChimpRepository implements Repository {
         tagInfo.setShortDescription( info.getValue( Schema.shortDescription.toString(), 0 ) );
         tagInfo.setLongDescription( info.getValue( Schema.longDescription.toString(), 0 ) );
         try {
-            tagInfo.setImage( new Image( movieTags.getValue( Schema.coverArtSmall.toString(), 0 ) ) );
+            String urlString = movieTags.getValue( Schema.coverArtSmall.toString(), 0 );
+            Image.Type imageType = null;
+            if ( urlString.endsWith( ".jpg" ) ) {
+                imageType = Image.Type.jpg;
+            }
+            if ( urlString.endsWith( ".png" ) ) {
+                imageType = Image.Type.png;
+            }
+            tagInfo.setImage( new Image( urlString, imageType ) );
         }
         catch ( MalformedURLException murle ) {
             if ( log.isWarnEnabled() )

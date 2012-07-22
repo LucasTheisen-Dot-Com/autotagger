@@ -88,7 +88,16 @@ public class AppleItemListBoxParser implements BoxParser<AppleItemListBox> {
                 tagInfo.setLongDescription( ((AppleSynopsisBox) box).getValue() );
             }
             else if ( box instanceof AppleCoverBox ) {
-                tagInfo.setImage( new Image( AppleBoxUtils.getData( (AppleCoverBox) box ) ) );
+                Image.Type imageType = null;
+                switch ( AppleBoxUtils.getFlags( (AppleCoverBox) box ) ) {
+                case 0xe:
+                    imageType = Image.Type.png;
+                    break;
+                case 0xd:
+                    imageType = Image.Type.jpg;
+                    break;
+                }
+                tagInfo.setImage( new Image( AppleBoxUtils.getData( (AppleCoverBox) box ), imageType ) );
             }
             else if ( box instanceof AppleGenericBox ) {
                 String meaning = AppleBoxUtils.getMeaning( (AppleGenericBox) box );

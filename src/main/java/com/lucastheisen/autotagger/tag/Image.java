@@ -15,18 +15,21 @@ public class Image {
     private static Logger log = LoggerFactory.getLogger( Image.class );
 
     private URL url;
+    private Type type;
     private byte[] bytes;
 
-    public Image( byte[] bytes ) {
+    public Image( byte[] bytes, Type type ) {
         this.bytes = bytes;
+        this.type = type;
     }
 
-    public Image( String url ) throws MalformedURLException {
-        this( new URL( url ) );
+    public Image( String url, Type type ) throws MalformedURLException {
+        this( new URL( url ), type );
     }
     
-    public Image( URL url ) {
+    public Image( URL url, Type type ) {
         this.url = url;
+        this.type = type;
     }
 
     public URL getUrl() {
@@ -35,26 +38,31 @@ public class Image {
 
     public byte[] getBytes() {
         if ( bytes == null ) {
-            try {
-                try ( InputStream inputStream = url.openStream()) {
-                    ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-                    int nRead;
-                    byte[] data = new byte[16384];
-                    while ( (nRead = inputStream.read( data, 0, data.length )) != -1 ) {
-                        buffer.write( data, 0, nRead );
-                    }
-                    buffer.flush();
-                    bytes = buffer.toByteArray();
+            //TODO: check the URL connection headers to get content type to verify either png or jpg (safer than trusting extension)
+            try ( InputStream inputStream = url.openStream()) {
+                ByteArrayOutputStream buffer = new ByteArrayOutputStream();
+                int nRead;
+                byte[] data = new byte[16384];
+                while ( (nRead = inputStream.read( data, 0, data.length )) != -1 ) {
+                    buffer.write( data, 0, nRead );
                 }
+                buffer.flush();
+                bytes = buffer.toByteArray();
             }
             catch ( MalformedURLException murle ) {
+                bytes = null;
                 log.warn( "Malformed image url: {}", url );
             }
             catch ( Exception e ) {
+                bytes = null;
                 log.warn( "Unable to read from {}: {}", url, e );
             }
         }
         return bytes;
+    }
+    
+    public Type getType() {
+        return type;
     }
     
     public void setUrl( String url ) throws MalformedURLException {
@@ -68,5 +76,9 @@ public class Image {
 
     public void setBytes( byte[] bytes ) {
         this.bytes = bytes;
+    }
+    
+    public enum Type {
+        jpg, png;
     }
 }
