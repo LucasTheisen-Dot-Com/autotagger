@@ -51,6 +51,36 @@ public class TagChimpRepository implements Repository {
         return new URI( scheme, null, hostname, -1, path, query, null );
     }
 
+    /*
+     * non Javadoc comment
+     * 
+     * Externalized to allow for unit testing.
+     */
+    List<TagInfo> process( InputStream inputStream ) {
+        final List<TagInfo> tagInfoList = new ArrayList<>();
+        XmlPullUtils.process(
+                new XmlStreamProcessor() {
+                    @Override
+                    public void process( XMLStreamReader reader ) {
+                        if ( XmlPullUtils.advanceToChildElement( reader, Schema.items.toString() ) ) {
+                            if ( XmlPullUtils.advanceToChildElement( reader, Schema.movie.toString() ) ) {
+                                do {
+                                    if ( log.isTraceEnabled() )
+                                        log.trace( "processing movie {}", reader.getLocalName() );
+                                    tagInfoList.add( processMovie( reader ) );
+                                    if ( log.isTraceEnabled() )
+                                        log.trace( "finished processing movie {}", reader.getLocalName() );
+                                } while ( XmlPullUtils.advanceToNextSiblingElement( reader ) );
+                            }
+                        }
+                        else {
+                            log.warn( "No <items> element found" );
+                        }
+                    }
+                }, inputStream );
+        return tagInfoList;
+    }
+
     private TagInfo processMovie( XMLStreamReader reader ) {
         XmlTreeNode movie = XmlPullUtils.buildXmlNodeTree( reader );
         XmlTreeNode movieTags = movie.get( Schema.movieTags.toString(), 0 );
@@ -106,9 +136,8 @@ public class TagChimpRepository implements Repository {
         return tagInfo;
     }
 
+    @Override
     public List<TagInfo> search( String title, int chapters ) {
-        final List<TagInfo> tagInfoList = new ArrayList<>();
-
         URL url;
         try {
             url = getSearchUri( title, chapters ).toURL();
@@ -118,32 +147,11 @@ public class TagChimpRepository implements Repository {
         }
 
         try ( InputStream inputStream = url.openStream()) {
-            XmlPullUtils.process(
-                    new XmlStreamProcessor() {
-                        @Override
-                        public void process( XMLStreamReader reader ) {
-                            if ( XmlPullUtils.advanceToChildElement( reader, Schema.items.toString() ) ) {
-                                if ( XmlPullUtils.advanceToChildElement( reader, Schema.movie.toString() ) ) {
-                                    do {
-                                        if ( log.isTraceEnabled() )
-                                            log.trace( "processing movie {}", reader.getLocalName() );
-                                        tagInfoList.add( processMovie( reader ) );
-                                        if ( log.isTraceEnabled() )
-                                            log.trace( "finished processing movie {}", reader.getLocalName() );
-                                    } while ( XmlPullUtils.advanceToNextSiblingElement( reader ) );
-                                }
-                            }
-                            else {
-                                log.warn( "No <items> element found" );
-                            }
-                        }
-                    }, inputStream );
+            return process( inputStream );
         }
         catch ( IOException e ) {
             throw new RepositorySearchException( e.getMessage(), e );
         }
-
-        return tagInfoList;
     }
 
     private enum Schema {
